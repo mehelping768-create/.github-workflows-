@@ -1,0 +1,35 @@
+name: Automated Forensic Scan
+
+on:
+  push:
+    paths:
+      - 'evidence/**' # Only runs when files in the evidence folder change
+
+permissions:
+  contents: write # Allows the bot to save the JSON report back to the repo
+
+jobs:
+  forensic_analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: pip install Pillow exifread
+
+      - name: Run Forensic Agent
+        run: python forensic_agent.py
+
+      - name: Commit and Push Report
+        run: |
+          git config --global user.name "Forensic-Bot"
+          git config --global user.email "bot@forensics.local"
+          git add manus_report.json
+          git commit -m "Auto-update: Generated new forensic JSON report" || exit 0
+          git push
